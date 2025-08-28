@@ -13,5 +13,4 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 
-
 CMD ["python3", "-u", "rp_handler.py"]

@@ -13,7 +13,7 @@ huggingface_token = os.environ.get("HUGGINGFACE_TOKEN")
 pipe = FluxPipeline.from_pretrained(
     "black-forest-labs/FLUX.1-dev", 
     torch_dtype=torch.bfloat16,               # используем 16-битный формат (bfloat16) для экономии памяти
-    use_auth_token=huggingface_token          # токен доступа для HuggingFace (если модель приватная)
+    token=huggingface_token          # токен доступа для HuggingFace (если модель приватная)
 )
 pipe.enable_model_cpu_offload()  # включаем выгрузку частей модели в CPU для экономии GPU памяти:contentReference[oaicite:4]{index=4}
 
