@@ -1,0 +1,6 @@
+runpod==1.7.13
+diffusers==0.19.3 
+accelerate==0.21.0 
+git+https://github.com/sberbank-ai/Real-ESRGAN.git
+Pillow          
+numpy              
