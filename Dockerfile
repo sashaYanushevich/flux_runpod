@@ -12,9 +12,6 @@ RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-RUN python3 - << 'PY'
-import runpod, importlib.util, sys
-print("runpod version:", runpod.__version__)
-PY
+
 
 CMD ["python3", "-u", "rp_handler.py"]
