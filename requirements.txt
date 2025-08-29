@@ -7,3 +7,5 @@ huggingface_hub>=0.34,<1.0
 safetensors>=0.4,<0.5
 Pillow>=10.2,<11
 numpy>=1.24
+sentencepiece>=0.1.99
+protobuf<5
