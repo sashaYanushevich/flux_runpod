@@ -28,8 +28,7 @@ def handler(event):
         )
         buf = BytesIO()
         image.save(buf, format="PNG")
-        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-        return {"image_base64": img_b64}
+        return {"image_base64": base64.b64encode(buf.getvalue()).decode("utf-8")}
     except Exception as e:
         return {"error": str(e)}
 
