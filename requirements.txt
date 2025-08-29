@@ -1,3 +1,4 @@
+# HF стек
 diffusers==0.35.1
 transformers==4.44.2
 accelerate==0.33.0
@@ -5,10 +6,13 @@ huggingface_hub==0.25.2
 safetensors==0.4.5
 Pillow==10.4.0
 
+# Апскейл (официальный realesrgan + basicsr)
 realesrgan==0.3.0
 basicsr==1.4.2
 facexlib==0.3.0
 opencv-python-headless==4.9.0.80
 scikit-image==0.22.0
+
+# утилиты
 numpy==1.26.4
 runpod==1.7.13
