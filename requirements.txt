@@ -3,7 +3,7 @@ runpod==1.7.13
 diffusers==0.35.1
 transformers==4.44.2
 accelerate>=0.31,<0.34
-huggingface_hub>=0.24,<0.27
+huggingface_hub>=0.34,<1.0
 safetensors>=0.4,<0.5
 Pillow>=10.2,<11
 numpy>=1.24
