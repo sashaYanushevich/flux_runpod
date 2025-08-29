@@ -6,3 +6,7 @@ huggingface_hub==0.25.2
 safetensors
 Pillow
 numpy
+realesrgan>=0.3.0
+basicsr>=1.4.2
+facexlib>=0.3.0
+opencv-python-headless

@@ -7,7 +7,7 @@ def handler(event):
     job_input = event.get("input", {})
     prompt = job_input.get("prompt")
     if not prompt:
-        return {"error": "No prompt provided."}  # Если prompt не задан, возвращаем ошибку
+        return {"error": "No prompt provided."}
 
     height = job_input.get("height", 512)
     width = job_input.get("width", 512)
@@ -18,17 +18,17 @@ def handler(event):
 
     try:
         image = generate_image(
-            prompt, 
-            height=height, 
-            width=width, 
+            prompt,
+            height=height,
+            width=width,
             guidance_scale=guidance_scale,
-            num_inference_steps=steps, 
-            seed=seed, 
+            num_inference_steps=steps,
+            seed=seed,
             upscale=upscale
         )
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        buf = BytesIO()
+        image.save(buf, format="PNG")
+        img_str = base64.b64encode(buf.getvalue()).decode("utf-8")
         return {"image_base64": img_str}
     except Exception as e:
         return {"error": str(e)}
