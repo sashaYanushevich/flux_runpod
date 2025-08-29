@@ -14,7 +14,7 @@ def handler(event):
     guidance_scale = job_input.get("guidance_scale", 3.5)
     steps = job_input.get("num_inference_steps", 50)
     seed = job_input.get("seed")
-    upscale = job_input.get("upscale")
+    upscale = job_input.get("upscale")  # None / "2x" / "4x"
 
     try:
         image = generate_image(
@@ -24,12 +24,12 @@ def handler(event):
             guidance_scale=guidance_scale,
             num_inference_steps=steps,
             seed=seed,
-            upscale=upscale
+            upscale=upscale,
         )
         buf = BytesIO()
         image.save(buf, format="PNG")
-        img_str = base64.b64encode(buf.getvalue()).decode("utf-8")
-        return {"image_base64": img_str}
+        img_b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        return {"image_base64": img_b64}
     except Exception as e:
         return {"error": str(e)}
 

@@ -1,58 +1,63 @@
 import os
 import torch
-import numpy as np
 from PIL import Image
-from diffusers import FluxPipeline
+from diffusers import FluxPipeline, StableDiffusionUpscalePipeline
 
-# <-- НОВОЕ: Real-ESRGAN от xinntao
-from basicsr.archs.rrdbnet_arch import RRDBNet
-from realesrgan import RealESRGANer
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+HF_TOKEN = os.environ.get("HUGGINGFACE_TOKEN")
 
-# FLUX
-hf_token = os.environ.get("HUGGINGFACE_TOKEN")
+# 1) FLUX.1-dev
 pipe = FluxPipeline.from_pretrained(
     "black-forest-labs/FLUX.1-dev",
     torch_dtype=torch.bfloat16,
-    token=hf_token
+    token=HF_TOKEN
 )
 pipe.enable_model_cpu_offload()
+pipe.enable_vae_slicing()
 
-def _get_realesrgan_upsampler(scale: int) -> RealESRGANer:
-    """Создаёт upsampler для x2 или x4 с локальными весами."""
-    assert scale in (2, 4)
-    model = RRDBNet(num_in_ch=3, num_out_ch=3,
-                    num_feat=64, num_block=23, num_grow_ch=32, scale=scale)
-    weight_path = f"/app/weights/RealESRGAN_x{scale}plus.pth"
-    return RealESRGANer(
-        scale=scale, model_path=weight_path, model=model,
-        tile=512, tile_pad=10, pre_pad=0, half=True, device=device
-    )
+# 2) SD x4 Upscaler (fp16)
+upscaler = StableDiffusionUpscalePipeline.from_pretrained(
+    "stabilityai/stable-diffusion-x4-upscaler",
+    torch_dtype=torch.float16
+)
+upscaler.enable_model_cpu_offload()
+upscaler.enable_vae_slicing()
 
-def generate_image(prompt: str, height: int = 512, width: int = 512,
-                   guidance_scale: float = 3.5, num_inference_steps: int = 50,
-                   seed: int | None = None, upscale: str | None = None):
-    generator = torch.Generator(device='cpu').manual_seed(seed) if seed is not None else None
+def generate_image(
+    prompt: str,
+    height: int = 512,
+    width: int = 512,
+    guidance_scale: float = 3.5,
+    num_inference_steps: int = 50,
+    seed: int | None = None,
+    upscale: str | None = None,
+):
+    generator = torch.Generator(device="cpu").manual_seed(seed) if seed is not None else None
 
+    # базовая генерация FLUX
     result = pipe(
         prompt,
-        height=height, width=width,
+        height=height,
+        width=width,
         guidance_scale=guidance_scale,
         num_inference_steps=num_inference_steps,
-        generator=generator
+        generator=generator,
     )
-    image: Image.Image = result.images[0]
+    img: Image.Image = result.images[0]
 
-    if upscale in ("2x", "4x"):
-        scale = 4 if upscale == "4x" else 2
-        upsampler = _get_realesrgan_upsampler(scale)
-        # RealESRGANer ожидает ndarray BGR; конвертируем туда-обратно
-        bgr = cvt_rgb_pil_to_bgr_np(image)
-        sr_bgr, _ = upsampler.enhance(bgr, outscale=scale)
-        return Image.fromarray(sr_bgr[:, :, ::-1])  # BGR->RGB
+    if upscale is None:
+        return img
 
-    return image
+    if upscale == "4x":
+        # SD x4 upscaler принимает PIL.Image и промпт
+        up = upscaler(prompt=prompt, image=img).images[0]
+        return up
 
-def cvt_rgb_pil_to_bgr_np(img: Image.Image) -> np.ndarray:
-    return np.array(img.convert("RGB"))[:, :, ::-1]
+    if upscale == "2x":
+        # делаем x4, затем даунскейлим до x2 (лучше, чем просто LANCZOS 2x)
+        up4 = upscaler(prompt=prompt, image=img).images[0]
+        return up4.resize((img.width * 2, img.height * 2), Image.LANCZOS)
+
+    # неизвестный режим — возвращаем базу
+    return img
